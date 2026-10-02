@@ -8,7 +8,7 @@ services:
       - AUTH_TYPE=DB
       - API_URL=http://keep-backend:8080
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?set in .env}
-      - NEXTAUTH_URL=http://${KEEP_HOST:?set in .env}:${KEEP_UI_PORT:-3010}
+      - NEXTAUTH_URL=https://keep.turyan.site
       - NEXT_PUBLIC_API_URL=http://${KEEP_HOST}:${KEEP_API_PORT:-8090}
       - PUSHER_HOST=${KEEP_HOST}
       - PUSHER_PORT=${KEEP_WS_PORT:-6001}
