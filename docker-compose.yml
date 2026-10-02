@@ -1,0 +1,53 @@
+services:
+  keep-frontend:
+    image: us-central1-docker.pkg.dev/keephq/keep/keep-ui
+    restart: unless-stopped
+    ports:
+      - "${KEEP_UI_PORT:-3010}:3000"
+    environment:
+      - AUTH_TYPE=DB
+      - API_URL=http://keep-backend:8080
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?set in .env}
+      - NEXTAUTH_URL=http://${KEEP_HOST:?set in .env}:${KEEP_UI_PORT:-3010}
+      - NEXT_PUBLIC_API_URL=http://${KEEP_HOST}:${KEEP_API_PORT:-8090}
+      - PUSHER_HOST=${KEEP_HOST}
+      - PUSHER_PORT=${KEEP_WS_PORT:-6001}
+      - PUSHER_APP_KEY=keepappkey
+    volumes:
+      - ./state:/state
+    depends_on:
+      - keep-backend
+
+  keep-backend:
+    image: us-central1-docker.pkg.dev/keephq/keep/keep-api
+    restart: unless-stopped
+    ports:
+      - "${KEEP_API_PORT:-8090}:8080"
+    environment:
+      - PORT=8080
+      - AUTH_TYPE=DB
+      - KEEP_JWT_SECRET=${KEEP_JWT_SECRET:?set in .env}
+      - KEEP_DEFAULT_USERNAME=${KEEP_DEFAULT_USERNAME:-keep}
+      - KEEP_DEFAULT_PASSWORD=${KEEP_DEFAULT_PASSWORD:?set in .env}
+      - SECRET_MANAGER_TYPE=FILE
+      - SECRET_MANAGER_DIRECTORY=/state
+      - DATABASE_CONNECTION_STRING=sqlite:////state/db.sqlite3?check_same_thread=False
+      - PUSHER_APP_ID=1
+      - PUSHER_APP_KEY=keepappkey
+      - PUSHER_APP_SECRET=${PUSHER_APP_SECRET:?set in .env}
+      - PUSHER_HOST=keep-websocket-server
+      - PUSHER_PORT=6001
+      - USE_NGROK=false
+    volumes:
+      - ./state:/state
+
+  keep-websocket-server:
+    image: quay.io/soketi/soketi:1.4-16-debian
+    restart: unless-stopped
+    ports:
+      - "${KEEP_WS_PORT:-6001}:6001"
+    environment:
+      - SOKETI_USER_AUTHENTICATION_TIMEOUT=3000
+      - SOKETI_DEFAULT_APP_ID=1
+      - SOKETI_DEFAULT_APP_KEY=keepappkey
+      - SOKETI_DEFAULT_APP_SECRET=${PUSHER_APP_SECRET}
