@@ -51,3 +51,6 @@ services:
       - SOKETI_DEFAULT_APP_ID=1
       - SOKETI_DEFAULT_APP_KEY=keepappkey
       - SOKETI_DEFAULT_APP_SECRET=${PUSHER_APP_SECRET}
+
+volumes:
+  keep-state:
